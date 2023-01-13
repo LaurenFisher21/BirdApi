@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from random import randrange
@@ -34,6 +34,11 @@ def find_bird(id):
         if bird["id"] == id:
             return bird
 
+def find_bird_index(id):
+    for x, bird in enumerate(bird_posts):
+        if bird["id"] == id:
+            return x
+
 @api.get("/")
 async def root():
     return{"message": "Hi there, Python."}
@@ -42,7 +47,7 @@ async def root():
 async def get_birds():
     return {"data": bird_posts}
 
-@api.post("/posts")
+@api.post("/posts", status_code=status.HTTP_201_CREATED)
 async def get_birds(birdData: bird_data):
     post_dict = birdData.dict()
     post_dict["id"] = randrange(3, 1000000)
@@ -52,5 +57,27 @@ async def get_birds(birdData: bird_data):
 @api.get("/posts/{id}")
 async def get_bird(id: int):
     post = find_bird(id)
-    print(post)
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with ID number {id} was not found..."
+        )
     return {"post_detail": post}
+
+@api.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_bird(id: int):
+    index = find_bird_index(id)
+
+    if index == None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Post with ID number {id} was not found..."
+            )
+    
+    bird_posts.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+#Back to the End - Rama
+#Warrior - Mulperi 
+
+# Don't mind me, just taking done some song names I'm listening to here...
