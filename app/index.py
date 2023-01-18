@@ -14,7 +14,6 @@ load_dotenv(find_dotenv())
 api = FastAPI()
 
 class bird_data(BaseModel):
-    birdID: int
     birdName: str
     birdSciName: str
     birdDescription: str
@@ -81,10 +80,10 @@ async def get_birds():
 
 @api.post("/posts", status_code=status.HTTP_201_CREATED)
 async def get_birds(birdData: bird_data):
-    post_dict = birdData.dict()
-    post_dict["id"] = randrange(3, 1000000)
-    bird_posts.append(post_dict)
-    return{"data": post_dict}
+    cursor.execute("SET NOCOUNT ON INSERT INTO dbo.birds(birdName, birdSciName, birdDescription, eggsPerSeasonMIN, eggsPerSeasonMAX, Threat, habitats) VALUES (?, ?, ?, ?, ?, ?, ?) SELECT @@IDENTITY AS birdID", birdData.birdName, birdData.birdSciName, birdData.birdDescription, birdData.eggsPerSeasonMIN, birdData.eggsPerSeasonMAX, birdData.Threat, birdData.habitats)
+    new_bird = cursor.fetchone()
+    cnxn_str.commit()
+    return{"data": new_bird}
 
 @api.get("/posts/{id}")
 async def get_bird(id: int):
